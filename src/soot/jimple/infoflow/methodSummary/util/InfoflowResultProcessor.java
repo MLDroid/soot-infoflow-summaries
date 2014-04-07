@@ -3,7 +3,6 @@ package soot.jimple.infoflow.methodSummary.util;
 import static soot.jimple.infoflow.methodSummary.data.impl.FlowSinkAndSourceFactory.createFlowFieldSink;
 import static soot.jimple.infoflow.methodSummary.data.impl.FlowSinkAndSourceFactory.createFlowParamterSink;
 import static soot.jimple.infoflow.methodSummary.data.impl.FlowSinkAndSourceFactory.createFlowReturnSink;
-import heros.InterproceduralCFG;
 
 import java.util.Collections;
 import java.util.Set;
@@ -26,23 +25,22 @@ import soot.jimple.infoflow.data.Abstraction;
 import soot.jimple.infoflow.data.AbstractionAtSink;
 import soot.jimple.infoflow.data.pathBuilders.DefaultPathBuilderFactory;
 import soot.jimple.infoflow.data.pathBuilders.IAbstractionPathBuilder;
-import soot.jimple.infoflow.methodSummary.SummarySourceSinkManager;
 import soot.jimple.infoflow.methodSummary.data.AbstractMethodFlow;
 import soot.jimple.infoflow.methodSummary.data.IFlowSink;
 import soot.jimple.infoflow.methodSummary.data.IFlowSource;
 import soot.jimple.infoflow.methodSummary.data.MethodSummaries;
 import soot.jimple.infoflow.methodSummary.data.impl.DefaultMethodFlow;
+import soot.jimple.infoflow.solver.IInfoflowCFG;
 
 public class InfoflowResultProcessor {
 	private final Logger logger = LoggerFactory.getLogger(InfoflowResultProcessor.class);
 
-	private InterproceduralCFG<Unit, SootMethod> cfg;
+	private IInfoflowCFG cfg;
 	private Set<Abstraction> result;
 	private boolean DEBUG = true;
 	private String method;
-
-	public InfoflowResultProcessor(Set<Abstraction> result2, InterproceduralCFG<Unit, SootMethod> cfg, String m,
-			SummarySourceSinkManager manager) {
+	
+	public InfoflowResultProcessor(Set<Abstraction> result2, IInfoflowCFG cfg, String m) {
 		this.result = result2;
 		this.cfg = cfg;
 		this.method = m;
