@@ -32,17 +32,17 @@ import soot.jimple.infoflow.methodSummary.data.IFlowSink;
 import soot.jimple.infoflow.methodSummary.data.IFlowSource;
 import soot.jimple.infoflow.methodSummary.data.MethodSummaries;
 import soot.jimple.infoflow.methodSummary.data.impl.DefaultMethodFlow;
+import soot.jimple.infoflow.solver.IInfoflowCFG;
 
 public class InfoflowResultProcessor {
 	private final Logger logger = LoggerFactory.getLogger(InfoflowResultProcessor.class);
 
-	private InterproceduralCFG<Unit, SootMethod> cfg;
+	private IInfoflowCFG cfg;
 	private Set<Abstraction> result;
 	private boolean DEBUG = true;
 	private String method;
 
-	public InfoflowResultProcessor(Set<Abstraction> result2, InterproceduralCFG<Unit, SootMethod> cfg, String m,
-			SummarySourceSinkManager manager) {
+	public InfoflowResultProcessor(Set<Abstraction> result2, IInfoflowCFG cfg, String m) {
 		this.result = result2;
 		this.cfg = cfg;
 		this.method = m;

@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+
 import soot.Scene;
 import soot.SootMethod;
 import soot.Unit;
@@ -20,8 +21,8 @@ import soot.jimple.infoflow.handlers.ResultsAvailableHandler;
 import soot.jimple.infoflow.methodSummary.data.MethodSummaries;
 import soot.jimple.infoflow.methodSummary.util.InfoflowResultProcessor;
 import soot.jimple.infoflow.methodSummary.util.SummaryTaintPropagationHandler;
+import soot.jimple.infoflow.solver.IInfoflowCFG;
 import soot.jimple.infoflow.taintWrappers.ITaintPropagationWrapper;
-import soot.jimple.toolkits.ide.icfg.BiDiInterproceduralCFG;
 
 /**
  * Class for generating library summaries
@@ -64,14 +65,14 @@ public class SummaryGenerator {
 		final SummaryTaintPropagationHandler listener = new SummaryTaintPropagationHandler(sig);
 		infoflow.addTaintPropagationHandler(listener);
 		infoflow.addResultsAvailableHandler(new ResultsAvailableHandler() {
-
-			@Override
-			public void onResultsAvailable(BiDiInterproceduralCFG<Unit, SootMethod> cfg, InfoflowResults results) {
-				InfoflowResultProcessor processor = new InfoflowResultProcessor
-						(listener.getResult(), cfg, sig, manager);
-				summaries.merge(processor.process());
-			}
 			
+			@Override
+			public void onResultsAvailable(IInfoflowCFG cfg, InfoflowResults results) {
+				InfoflowResultProcessor processor = new InfoflowResultProcessor
+						(listener.getResult(), cfg, sig);
+				summaries.merge(processor.process());
+				
+			}
 		});
 		infoflow.computeInfoflow(null, path, createEntryPoint(), Collections.singletonList(sig), manager);
 		return summaries;
