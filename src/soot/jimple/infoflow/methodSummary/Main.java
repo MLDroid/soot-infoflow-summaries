@@ -28,8 +28,6 @@ import java.util.concurrent.DelayQueue;
 import javax.xml.stream.XMLStreamException;
 
 import soot.jimple.infoflow.methodSummary.util.ClassFileInformation;
-import soot.jimple.infoflow.test.methodSummary.ApiClass;
-import soot.jimple.infoflow.test.methodSummary.SimpleList;
 
 @SuppressWarnings("unused")
 class Main {
