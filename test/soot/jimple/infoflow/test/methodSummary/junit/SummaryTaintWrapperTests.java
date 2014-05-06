@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import javax.xml.stream.XMLStreamException;
@@ -125,8 +126,9 @@ public class SummaryTaintWrapperTests {
 		try {
 			iFlow = initInfoflow();
 			Infoflow.setAccessPathLength(3);
-			iFlow.computeInfoflow(appPath, libPath, new DefaultEntryPointCreator(),
-					java.util.Collections.singletonList(m), Arrays.asList(source),
+			iFlow.computeInfoflow(appPath, libPath,
+					new DefaultEntryPointCreator(Collections.singletonList(m)),
+					Arrays.asList(source),
 					java.util.Collections.singletonList(sink));
 		} catch (Exception e) {
 			fail("failed to calc path for test" + e.toString());
@@ -139,8 +141,9 @@ public class SummaryTaintWrapperTests {
 
 		try {
 			iFlow = initInfoflow();
-			iFlow.computeInfoflow(appPath, libPath, new DefaultEntryPointCreator(),
-					java.util.Collections.singletonList(m), Arrays.asList(source),
+			iFlow.computeInfoflow(appPath, libPath,
+					new DefaultEntryPointCreator(Collections.singletonList(m)),
+					Arrays.asList(source),
 					java.util.Collections.singletonList(sink));
 		} catch (Exception e) {
 			fail("failed to calc path for test" + e.toString());

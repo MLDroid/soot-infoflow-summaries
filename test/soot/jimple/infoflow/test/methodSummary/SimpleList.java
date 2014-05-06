@@ -5,9 +5,6 @@ package soot.jimple.infoflow.test.methodSummary;
 public class SimpleList<E> {
 	Data first ;
 	Object keySet;
-	private static class Node<E> {
-		E item;
-	}
 	
 	public Object get() {
 		return first.data;

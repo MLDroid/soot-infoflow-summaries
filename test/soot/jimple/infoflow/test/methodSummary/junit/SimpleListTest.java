@@ -2,8 +2,7 @@ package soot.jimple.infoflow.test.methodSummary.junit;
 
 import java.util.Set;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.Test;
 
 import soot.jimple.infoflow.methodSummary.SummaryGenerator;

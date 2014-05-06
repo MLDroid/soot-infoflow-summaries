@@ -2,15 +2,11 @@ package soot.jimple.infoflow.methodSummary;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Method;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-
-import soot.Scene;
-import soot.SootMethod;
-import soot.Unit;
 import soot.jimple.infoflow.IInfoflow.CallgraphAlgorithm;
 import soot.jimple.infoflow.Infoflow;
 import soot.jimple.infoflow.InfoflowResults;
@@ -74,12 +70,12 @@ public class SummaryGenerator {
 				
 			}
 		});
-		infoflow.computeInfoflow(null, path, createEntryPoint(), Collections.singletonList(sig), manager);
+		infoflow.computeInfoflow(null, path, createEntryPoint(Collections.singleton(sig)), manager);
 		return summaries;
 	}
 	
-	private BaseEntryPointCreator createEntryPoint(){
-		DefaultEntryPointCreator dEntryPointCreater = new DefaultEntryPointCreator();
+	private BaseEntryPointCreator createEntryPoint(Collection<String> entryPoints){
+		DefaultEntryPointCreator dEntryPointCreater = new DefaultEntryPointCreator(entryPoints);
 		dEntryPointCreater.setSubstituteClasses(substitutedWith);
 		dEntryPointCreater.setSubstituteCallParams(true);
 		return dEntryPointCreater;
