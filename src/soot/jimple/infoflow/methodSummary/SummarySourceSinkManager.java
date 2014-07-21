@@ -70,6 +70,7 @@ public class SummarySourceSinkManager implements ISourceSinkManager {
 		this.methodSig = method;
 	}
 
+	
 	@Override
 	public SourceInfo getSourceInfo(Stmt sCallSite, InterproceduralCFG<Unit, SootMethod> cfg) {
 		if (method == null) {
@@ -95,30 +96,31 @@ public class SummarySourceSinkManager implements ISourceSinkManager {
 				PointsToSet fieldBasePT = Scene.v().getPointsToAnalysis().reachingObjects(fieldBase);
 				
 				//field source apl = 2
-				for (SootField f : getClassFields()) {
+				SootClass sc = method.getDeclaringClass();
+				for (SootField f : sc.getFields()) {
 					if (!f.isStatic()) {
 						PointsToSet pointsToField = Scene.v().getPointsToAnalysis().reachingObjects
 								(method.getActiveBody().getThisLocal(), f);
 						if (fieldBasePT.hasNonEmptyIntersection(pointsToField)) {
-							System.out.println("source: (this)." + f  +"." + fieldRef.getField() + "  #  " + sCallSite);
+							System.out.println("source: (this)." + f + "." + fieldRef.getField() + "  #  " + sCallSite);
 							return new SourceInfo(true, createFlowFieldSource(f, fieldRef.getField()));
 						}
 					}
-					
-					// Field source apl = 1
-					if (fieldBasePT.hasNonEmptyIntersection(ptsThis)) {
-						System.out.println("source: (this)." + fieldRef.getField() + "  #  " + sCallSite);
-						return new SourceInfo(false, createFlowFieldSource(fieldRef.getField(), null));
-					}
-					
-					// Check for parameter field reads
-					for (int i = 0 ; i < method.getParameterCount(); i++){					
-						Local para = method.getActiveBody().getParameterLocal(i);
-						PointsToSet pTsPara = Scene.v().getPointsToAnalysis().reachingObjects(para);
-						if (fieldBasePT.hasNonEmptyIntersection(pTsPara)) {
-							System.out.println("source: " + fieldBase +"(Paramter)." +fieldRef.getField() + "  #  " + sCallSite);
-							return new SourceInfo(true, createFlowParamterSource(method, i, fieldRef.getField()));
-						}
+				}
+				//field source apl = 1
+				if (fieldBasePT.hasNonEmptyIntersection(ptsThis)) {
+					System.out.println("source: (this)." + fieldRef.getField() + "  #  " + sCallSite);
+					SourceInfo si = new SourceInfo(false, createFlowFieldSource(fieldRef.getField(), null));
+					return si;
+				}
+				//Scene.v().getPointsToAnalysis().reachingObjects(m.getActiveBody().getThisLocal()).hasNonEmptyIntersection(pTsPara)
+				// Check for parameter field reads
+				for (int i = 0 ; i < method.getParameterCount(); i++){
+					Local para = method.getActiveBody().getParameterLocal(i);
+					PointsToSet pTsPara = Scene.v().getPointsToAnalysis().reachingObjects(para);
+					if (fieldBasePT.hasNonEmptyIntersection(pTsPara)) {
+						System.out.println("source: " + fieldBase +"(Paramter)." +fieldRef.getField() + "  #  " + sCallSite);
+						return new SourceInfo(true, createFlowParamterSource(method, i, fieldRef.getField()));
 					}
 				}
 			}
@@ -143,7 +145,6 @@ public class SummarySourceSinkManager implements ISourceSinkManager {
 	
 	@Override
 	public boolean isSink(Stmt sCallSite, InterproceduralCFG<Unit, SootMethod> cfg) {
-
 		SootMethod m = cfg.getMethodOf(sCallSite);
 		if (m.getSignature().contains("dummyMainClass: void dummyMainMethod()"))
 			return false;
@@ -163,10 +164,6 @@ public class SummarySourceSinkManager implements ISourceSinkManager {
 				return true;
 		}
 		return false;
-	}
-	
-	private Collection<SootField> getClassFields(){
-		return classToFields.getUnchecked(method.getDeclaringClass());
 	}
 	
 }

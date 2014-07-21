@@ -15,6 +15,19 @@ public class ApiClass implements IApiClass {
 	@SuppressWarnings("unused")
 	private static Data staticNonPrimitiveVariable = new Data();
 
+	Node first ;
+	private static class Node {
+		Object item;
+	}
+	
+	public Object get() {
+		return first.item;
+//		return first == null ? null : first.data;
+	}
+	
+	public void set(Node data) {
+		first = data;
+	}
 	public Data getNonPrimitiveVariable() {
 		return nonPrimitiveVariable;
 	}
@@ -232,11 +245,17 @@ public class ApiClass implements IApiClass {
 
 	// mix tests
 	public Data mixedFlow1(int i, Data data) {
+		
 		if (data.value > 43) {
 			primitiveVariable = data.value;
 		} else {
 			staticPrimitiveVariable = 3;
 		}
+		data.value = i;
+		return data;
+	}
+
+	public Data mixedFlow1small(int i, Data data) {
 		data.value = i;
 		return data;
 	}
@@ -280,9 +299,9 @@ public class ApiClass implements IApiClass {
 	}
 
 	public void swap2() {
-		// ApiDataClass t = nonPrimitive2Variable;
+		Data t = nonPrimitive2Variable;
 		nonPrimitive2Variable.data = nonPrimitiveVariable.data;
-		nonPrimitiveVariable.value = nonPrimitive2Variable.value;
+		nonPrimitiveVariable.value = t.value;
 	}
 
 	public void data1ToDate2() {

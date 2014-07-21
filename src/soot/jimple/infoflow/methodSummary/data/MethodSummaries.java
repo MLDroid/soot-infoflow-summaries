@@ -1,10 +1,11 @@
 package soot.jimple.infoflow.methodSummary.data;
 
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
+import soot.jimple.infoflow.util.ConcurrentHashSet;
 
 /**
  * Data class encapsulating a set of method summaries
@@ -16,7 +17,7 @@ public class MethodSummaries {
 	private final Map<String, Set<AbstractMethodFlow>> flows;
 	
 	public MethodSummaries() {
-		this.flows = new HashMap<String, Set<AbstractMethodFlow>>();
+		this.flows = new ConcurrentHashMap<String, Set<AbstractMethodFlow>>();
 	}
 	
 	public MethodSummaries(Map<String, Set<AbstractMethodFlow>> flows) {
@@ -63,15 +64,15 @@ public class MethodSummaries {
 	 * @param methodSig The signature of the method for which to add the flow
 	 * @param flow The flow to add
 	 */
-	public void addFlowForMethod(String methodSig, AbstractMethodFlow flow) {
+	public boolean addFlowForMethod(String methodSig, AbstractMethodFlow flow) {
 		Set<AbstractMethodFlow> methodFlows = flows.get(methodSig);
 		if (methodFlows == null) {
-			methodFlows = new HashSet<AbstractMethodFlow>();
+			methodFlows = new ConcurrentHashSet<AbstractMethodFlow>();
 			flows.put(methodSig, methodFlows);
 		}
-		methodFlows.add(flow);
+		return methodFlows.add(flow);
 	}
-	
+	 
 	/**
 	 * Adds new flows for a method to this summary object
 	 * @param methodSig The signature of the method for which to add the flows
@@ -80,7 +81,7 @@ public class MethodSummaries {
 	public void addFlowForMethod(String methodSig, Set<AbstractMethodFlow> newFlows) {
 		Set<AbstractMethodFlow> methodFlows = flows.get(methodSig);
 		if (methodFlows == null) {
-			methodFlows = new HashSet<AbstractMethodFlow>();
+			methodFlows = new ConcurrentHashSet<AbstractMethodFlow>();
 			flows.put(methodSig, methodFlows);
 		}
 		methodFlows.addAll(newFlows);

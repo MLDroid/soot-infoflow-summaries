@@ -2,12 +2,12 @@ package soot.jimple.infoflow.methodSummary;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-import soot.SootMethod;
-import soot.Unit;
+import soot.jimple.infoflow.IInfoflow.CallgraphAlgorithm;
 import soot.jimple.infoflow.Infoflow;
 import soot.jimple.infoflow.InfoflowResults;
 import soot.jimple.infoflow.config.IInfoflowConfig;
@@ -17,8 +17,8 @@ import soot.jimple.infoflow.handlers.ResultsAvailableHandler;
 import soot.jimple.infoflow.methodSummary.data.MethodSummaries;
 import soot.jimple.infoflow.methodSummary.util.InfoflowResultProcessor;
 import soot.jimple.infoflow.methodSummary.util.SummaryTaintPropagationHandler;
+import soot.jimple.infoflow.solver.IInfoflowCFG;
 import soot.jimple.infoflow.taintWrappers.ITaintPropagationWrapper;
-import soot.jimple.toolkits.ide.icfg.BiDiInterproceduralCFG;
 
 /**
  * Class for generating library summaries
@@ -30,9 +30,10 @@ public class SummaryGenerator {
 	
 	protected int accessPathLength = 3;
 	protected boolean enableImplicitFlows = false;
-	protected boolean enableExceptionTracking = true;
-	protected boolean enableStaticFieldTracking = true;
-	protected boolean flowSensitiveAliasing = true;
+	protected boolean enableExceptionTracking = false;
+	protected boolean enableStaticFieldTracking = false;
+	protected boolean flowSensitiveAliasing = false;
+	protected CallgraphAlgorithm cfgAlgo = CallgraphAlgorithm.CHA;
 	protected boolean debug = false;
 	protected ITaintPropagationWrapper taintWrapper;
 	protected IInfoflowConfig config;
@@ -45,33 +46,36 @@ public class SummaryGenerator {
 		//substitutedWith.add("java.util.TreeMap");
 		initDefPath();
 	}
-
 	public MethodSummaries createMethodSummary(final String m) {
-		return createMethodSummary(m, new SummarySourceSinkManager(m));
+		return createMethodSummary(m,null,new SummarySourceSinkManager(m));
+	}
+
+	public MethodSummaries createMethodSummary(final String m, List<String> mDependencies) {
+		return createMethodSummary(m, mDependencies,new SummarySourceSinkManager(m));
 	}
 	
-	public MethodSummaries createMethodSummary(final String sig, final SummarySourceSinkManager manager) {
+	private MethodSummaries createMethodSummary(final String sig, List<String> mDependencies, final SummarySourceSinkManager manager) {
 		final MethodSummaries summaries = new MethodSummaries();
 		
 		Infoflow infoflow = initInfoflow();
 		final SummaryTaintPropagationHandler listener = new SummaryTaintPropagationHandler(sig);
 		infoflow.addTaintPropagationHandler(listener);
 		infoflow.addResultsAvailableHandler(new ResultsAvailableHandler() {
-
-			@Override
-			public void onResultsAvailable(BiDiInterproceduralCFG<Unit, SootMethod> cfg, InfoflowResults results) {
-				InfoflowResultProcessor processor = new InfoflowResultProcessor
-						(listener.getResult(), cfg, sig, manager);
-				summaries.merge(processor.process());
-			}
 			
+			@Override
+			public void onResultsAvailable(IInfoflowCFG cfg, InfoflowResults results) {
+				InfoflowResultProcessor processor = new InfoflowResultProcessor
+						(listener.getResult(), cfg, sig);
+				summaries.merge(processor.process());
+				
+			}
 		});
-		infoflow.computeInfoflow(path, createEntryPoint(), Collections.singletonList(sig), manager);
+		infoflow.computeInfoflow(null, path, createEntryPoint(Collections.singleton(sig)), manager);
 		return summaries;
 	}
 	
-	private BaseEntryPointCreator createEntryPoint(){
-		DefaultEntryPointCreator dEntryPointCreater = new DefaultEntryPointCreator();
+	private BaseEntryPointCreator createEntryPoint(Collection<String> entryPoints){
+		DefaultEntryPointCreator dEntryPointCreater = new DefaultEntryPointCreator(entryPoints);
 		dEntryPointCreater.setSubstituteClasses(substitutedWith);
 		dEntryPointCreater.setSubstituteCallParams(true);
 		return dEntryPointCreater;
@@ -79,13 +83,14 @@ public class SummaryGenerator {
 
 	protected Infoflow initInfoflow() {
 		Infoflow iFlow = new Infoflow();
-		iFlow.setAccessPathLength(accessPathLength);
+		Infoflow.setAccessPathLength(accessPathLength);
+				
 		iFlow.setEnableImplicitFlows(enableImplicitFlows);
 		iFlow.setEnableExceptionTracking(enableExceptionTracking);
 		iFlow.setEnableStaticFieldTracking(enableStaticFieldTracking);
 		iFlow.setFlowSensitiveAliasing(flowSensitiveAliasing);
 		iFlow.setTaintWrapper(taintWrapper);
-
+		iFlow.setCallgraphAlgorithm(cfgAlgo);
 		if (config == null) {
 			iFlow.setSootConfig(new DefaultSummaryConfig());
 		} else {
@@ -102,9 +107,16 @@ public class SummaryGenerator {
 	protected void initDefPath() {
 		File f = new File(".");
 		try {
+			final String pathSep = System.getProperty("path.separator");
 			path = System.getProperty("java.home") + File.separator + "lib" + File.separator + "rt.jar"
+					+ pathSep + f.getCanonicalPath() + File.separator + "bin"
+					+ pathSep + f.getCanonicalPath() + File.separator + "build" + File.separator + "testclasses"
+					+ pathSep + f.getCanonicalPath() + File.separator + "lib";
+			/*
+			path = "D:\\Temp\\odex-phone\\android-phone.jar"
 					+ System.getProperty("path.separator") + f.getCanonicalPath() + File.separator + "bin"
 					+ System.getProperty("path.separator") + f.getCanonicalPath() + File.separator + "lib";
+			*/
 		} catch (IOException e) {
 			e.printStackTrace();
 			path = System.getProperty("java.home") + File.separator + "lib" + File.separator + "rt.jar";

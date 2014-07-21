@@ -5,10 +5,10 @@ import java.util.Map;
 
 import soot.SootField;
 import soot.SootMethod;
-import soot.jimple.infoflow.methodSummary.data.AbstractFlowSink;
+import soot.jimple.infoflow.methodSummary.data.IFlowSink;
 import soot.jimple.infoflow.methodSummary.xml.XMLConstants;
 
-public class DefaultFlowSink extends AbstractFlowSink {
+public class DefaultFlowSink implements IFlowSink {
 	private final int paraIdx;
 	private final boolean isReturn;
 	private final String paraTyp;
@@ -17,9 +17,6 @@ public class DefaultFlowSink extends AbstractFlowSink {
 	private final String accessPath;
 	private final boolean taintSubFields;
 	
-
-
-
 	public DefaultFlowSink(SootField ap, boolean taintSubFields) {
 		this.field = null;
 		if(ap == null)
@@ -76,8 +73,6 @@ public class DefaultFlowSink extends AbstractFlowSink {
 
 	@Override
 	public String getParaType() {
-		if (getParamterIndex() == -1)
-			return "failed";
 		return paraTyp;
 	}
 
@@ -90,9 +85,7 @@ public class DefaultFlowSink extends AbstractFlowSink {
 	public boolean isReturn() {
 		return isReturn;
 	}
-
 	
-
 	@Override
 	public Map<String, String> xmlAttributes() {
 		Map<String, String> res = new HashMap<String, String>();
@@ -125,11 +118,15 @@ public class DefaultFlowSink extends AbstractFlowSink {
 	
 	@Override
 	public String toString(){
-		StringBuffer buf = new StringBuffer();
-		for(String t : xmlAttributes().values()){
-			buf.append(t + " ");
+		if(isParamter()){
+			return "Parameter: " + getParamterIndex() + " " + getParaType() +((getAccessPath()!=null) ? getAccessPath() : "") + " " +taintSubFields();
+		}else if(isField()){
+			return "Field " +getField() + ((getAccessPath()!=null) ? getAccessPath() : "") + " " +taintSubFields();
+		}else if(isReturn){
+			return "Return " + taintSubFields();
+		}else{
+			return "invalid sink";
 		}
-		return buf.toString();
 	}
 	
 	@Override

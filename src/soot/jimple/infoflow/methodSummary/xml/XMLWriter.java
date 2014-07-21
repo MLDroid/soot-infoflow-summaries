@@ -24,9 +24,6 @@ public class XMLWriter implements ISummaryWriter {
 		out = new FileOutputStream(fileName);
 		XMLOutputFactory factory = XMLOutputFactory.newInstance();
 		writer = factory.createXMLStreamWriter(out);
-		//factory.setProperty(XMLOutputFactory.INDENTATION, "/t");
-		//writer = factory.createXMLStreamWriter(out);
-		
 	}
 
 	boolean wroteMethodsTag = false;

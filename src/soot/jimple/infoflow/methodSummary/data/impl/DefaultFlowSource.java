@@ -5,10 +5,10 @@ import java.util.Map;
 
 import soot.SootField;
 import soot.SootMethod;
-import soot.jimple.infoflow.methodSummary.data.AbstractFlowSource;
+import soot.jimple.infoflow.methodSummary.data.IFlowSource;
 import soot.jimple.infoflow.methodSummary.xml.XMLConstants;
 
-public class DefaultFlowSource extends AbstractFlowSource {
+public class DefaultFlowSource implements IFlowSource {
 
 	private final int parameterIdx;
 	private final String field;
@@ -64,8 +64,6 @@ public class DefaultFlowSource extends AbstractFlowSource {
 
 	@Override
 	public String getParaType() {
-		if (getParamterIndex() == -1)
-			return "failed2";
 		return paraTyp;
 	}
 	@Override
@@ -97,11 +95,15 @@ public class DefaultFlowSource extends AbstractFlowSource {
 	}
 	@Override
 	public String toString(){
-		StringBuffer buf = new StringBuffer();
-		for(String t : xmlAttributes().values()){
-			buf.append(t + " ");
+		if(isParamter()){
+			return "Parameter: " + getParamterIndex() + " " + getParaType() +((getAccessPath()!=null) ? getAccessPath() : "");
+		}else if(isField()){
+			return "Field " +getField() +((getAccessPath()!=null) ? getAccessPath() : ""); 
+		}else if(isThis()){
+			return "THIS source";
+		}else{
+			return "invalid source";
 		}
-		return buf.toString();
 	}
 	
 	@Override

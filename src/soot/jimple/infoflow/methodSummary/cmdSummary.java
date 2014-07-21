@@ -27,7 +27,9 @@ public class cmdSummary {
 	public static final String METHOD_FILTER_KEY = "-mf";
 	public static final String OUTPUT_FOLDER_KEY = "-f";
 	public static final String RUN_UNSAFE = "-unsafe";
+	public static final String OVERWRITE_FILE = "-ow";
 	private static final String DEFAULT_OUTPUT_FOLDER = "";
+	
 	
 	public static void main(String... args) throws FileNotFoundException, XMLStreamException {
 		if (args.length == 0) {
@@ -44,6 +46,8 @@ public class cmdSummary {
 			boolean run_unsafe = false;
 			List<String> filterMethods;
 			String outputFolder = DEFAULT_OUTPUT_FOLDER;
+			boolean overWrite = false;
+			
 			String[] mSigs = classSignitures(getValue(METHODS, args));
 			if (checkMethodSigs(mSigs)) {
 				if (containsKey(OUTPUT_FOLDER_KEY, args)) {
@@ -51,6 +55,9 @@ public class cmdSummary {
 					File outFolder = new File(outputFolder);
 					if (!outFolder.exists())
 						outFolder.mkdirs();
+				}
+				if(containsKey(OVERWRITE_FILE, args)){
+					overWrite = true;
 				}
 				if(containsKey(RUN_UNSAFE, args)){
 					run_unsafe = true;
@@ -62,7 +69,7 @@ public class cmdSummary {
 					filterMethods = java.util.Collections.emptyList();
 				}
 
-				createSummary(mSigs, outputFolder, filterMethods,run_unsafe);
+				createSummary(mSigs, outputFolder, filterMethods,run_unsafe,overWrite);
 			} else {
 				System.out.println(programMAN());
 			}
@@ -102,19 +109,27 @@ public class cmdSummary {
 	 * @throws FileNotFoundException
 	 * @throws XMLStreamException
 	 */
-	private static void createSummary(String[] mSigs, String folder, List<String> filter, boolean run_unsafe2)
+	private static void createSummary(String[] mSigs, String folder, List<String> filter, boolean run_unsafe2, boolean ow)
 			throws FileNotFoundException, XMLStreamException {
 		for (String clz : getAllClasses(mSigs)) {
+			long beforeSummary = System.nanoTime();
 			String file = classToFile(clz);
 			System.out.println("create methods summaries for: " + clz + " output to: " + folder);
 			SummaryGenerator s = new SummaryGenerator();
 			MethodSummaries flows = new MethodSummaries();
+			
+			// Do not overwrite existing summaries
+			String xmlFile = classToFile(clz);
+			File f = new File(folder + File.separator + xmlFile);
+			if (f.exists() && !ow)
+				continue;
+			
 			for (String m : mSigs) {
 				if (getClassNameFromMethodSig(m).equals(clz)) {
 					if (filterInclude(m, filter)) {
 						printStartSummary(m);
 						try {
-							flows.merge(s.createMethodSummary(m));
+							flows.merge(s.createMethodSummary(m,Arrays.asList(mSigs)));
 						} catch (RuntimeException e) {
 							HandleException.handleException(flows, file, folder, e, "createSummary in class: " + clz
 									+ " method: " + m);
@@ -127,7 +142,9 @@ public class cmdSummary {
 					}
 				}
 			}
-			write(flows, classToFile(clz), folder);
+			write(flows, xmlFile, folder);
+			System.out.println("Methods summaries for: " + clz + " created in "
+					+ (System.nanoTime() - beforeSummary) / 1E9 + " seconds");
 		}
 	}
 	

@@ -4,6 +4,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
@@ -11,7 +12,6 @@ import java.net.URL;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.PriorityQueue;
@@ -20,6 +20,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.Vector;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.DelayQueue;
@@ -41,38 +42,42 @@ class Main {
 		 * HttpURLConnection.class, URL.class, ArrayList.class,
 		 * InvocationTargetException.class, Method.class };
 		 */
-		Class<?>[] javaCollection = { HashMap.class, TreeSet.class, ArrayList.class, Stack.class, Vector.class,
+		Class<?>[] javaCollection2 = { HashMap.class, TreeSet.class, ArrayList.class, Stack.class, Vector.class,
 				LinkedList.class, LinkedHashMap.class, ConcurrentLinkedQueue.class, PriorityQueue.class,
 				ArrayBlockingQueue.class, ArrayDeque.class, ConcurrentSkipListMap.class, DelayQueue.class,
-				TreeMap.class };
-
-		Class<?>[] clazzes =javaCollection; // {ApiClass.class};
-		String[] methodFilter = {""};
-
+				TreeMap.class, ConcurrentHashMap.class, /*String.class,*/ StringBuilder.class,
+				RuntimeException.class };
+		// SA: Do not reference classes from the test suite here. This will break the build script
+		// Class<?>[] javaCollection = {SimpleList.class};
+		
 		int runOption = 0;
 		boolean useOutPutFolder = true;
 		String outFolder = "jdkSummaries";
-
+		boolean overWriteFile = true;
+		
 		String mSig = "" ;//"<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>"; //<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>";
 		if (mSig.length() == 0) {
-			for (Class<?> c : clazzes) {
+			for (Class<?> c : javaCollection2) {
+				for (Constructor<?> cons : c.getDeclaredConstructors())
+					mSig = mSig + ClassFileInformation.getMethodSig(cons) + ";";
 				for (Method m : c.getDeclaredMethods()) {
-			//		if (!m.toString().contains("$"))
+					//if (!m.toString().contains("$"))
 						mSig = mSig + ClassFileInformation.getMethodSig(m) + ";";
 				}
 			}
-
+			
 			mSig = mSig.substring(0, mSig.length() - 1).trim();
 		}
-		String filter = "";
-		for (String c : methodFilter) {
-			filter = filter + c.toString() + ";";
-		}
-		filter = filter.substring(0, filter.length() - 1);
+		String filter = "get(";
+		
+		
+		
 		ArrayList<String> runArgs = new ArrayList<String>();
 		runArgs.add("-m " + mSig);
 		runArgs.add("-o " + runOption);
 		runArgs.add("-mf " + filter);
+		if(overWriteFile)
+			runArgs.add("-ow");
 		if (useOutPutFolder && outFolder != null && outFolder.length() > 0)
 			runArgs.add("-f " + outFolder);
 
