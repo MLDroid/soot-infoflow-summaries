@@ -53,7 +53,7 @@ public class InfoflowResultProcessor {
 		final PointsToAnalysis pTa = Scene.v().getPointsToAnalysis();
 		
 		IAbstractionPathBuilder pathBuilder = new DefaultPathBuilderFactory().createPathBuilder
-				(Runtime.getRuntime().availableProcessors());
+				(Runtime.getRuntime().availableProcessors(), cfg);
 		
 		for (Abstraction a : result) {
 			logger.debug("abstraction: " + a.toString());
